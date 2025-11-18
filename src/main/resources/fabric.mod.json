@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "smp",
+  "version": "${version}",
+  "name": "smp",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/smp/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.eu.sushi.smp.client.SmpDataGenerator"
+    ],
+    "main": [
+      "com.eu.sushi.smp.Smp"
+    ]
+  },
+  "mixins": [
+    "smp.mixins.json",
+    {
+      "config": "smp.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
