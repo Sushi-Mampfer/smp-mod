@@ -4,7 +4,8 @@
   "package": "com.eu.sushi.smp.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "HappyGhastEntityMixin"
+    "HappyGhastEntityMixin",
+    "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

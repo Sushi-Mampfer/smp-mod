@@ -1,24 +1,46 @@
 package com.eu.sushi.smp.mixin;
 
-import com.eu.sushi.smp.Smp;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.passive.HappyGhastEntity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.RegistryEntryLookup;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Optional;
 
 @Mixin(HappyGhastEntity.class)
 public class HappyGhastEntityMixin {
-    @Inject(method = "travel", at = @At("HEAD"))
-    private void onTravel(CallbackInfo ci) {
+    @Inject(method = "removePassenger", at = @At("HEAD"))
+    private void onRemovePassenger(CallbackInfo ci) {
+        HappyGhastEntity self = (HappyGhastEntity) (Object) this;
+
+        if (!self.hasPassengers()) {
+            EntityAttributeInstance instance = self.getAttributeInstance(EntityAttributes.FLYING_SPEED);
+            if (instance == null) return;
+
+            Identifier id = Identifier.of("smp", "speedy_ghast");
+
+            if (instance.hasModifier(id)) {
+                instance.removeModifier(id);
+            }
+        }
+    }
+
+    @Inject(method = "getControlledMovementInput", at = @At("HEAD"))
+    private void onGetControlledMovementInput(PlayerEntity controllingPlayer, Vec3d movementInput, CallbackInfoReturnable<Vec3d> cir) {
         HappyGhastEntity self = (HappyGhastEntity) (Object) this;
 
         EntityAttributeInstance instance = self.getAttributeInstance(EntityAttributes.FLYING_SPEED);
@@ -28,20 +50,29 @@ public class HappyGhastEntityMixin {
 
         boolean hasModifier = instance.hasModifier(id);
 
-        LivingEntity pilot = self.getControllingPassenger();
-        if (pilot == null) {
+        if (!(controllingPlayer instanceof ServerPlayerEntity pilot)) {
             if (hasModifier) {
                 instance.removeModifier(id);
             }
             return;
-        };
+        }
 
-        Smp.LOGGER.info("player");
 
-        ServerPlayerEntity player = (ServerPlayerEntity) pilot;
-        if (player.getPlayerInput().sprint()) {
+        RegistryEntryLookup<Enchantment> lookup = self.getEntityWorld().getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT).get();
+        Optional<RegistryEntry.Reference<Enchantment>> enchantment = lookup.getOptional(Enchantments.SHARPNESS);
+
+        if (enchantment.isEmpty()) {
+            if (hasModifier) {
+                instance.removeModifier(id);
+            }
+        }
+
+        int level = self.getBodyArmor().getEnchantments().getLevel(enchantment.orElse(null));
+
+        if (pilot.getPlayerInput().sprint()) {
             if (!hasModifier) {
-                instance.addTemporaryModifier(new EntityAttributeModifier(id, 1.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                EntityAttributeModifier modifier = new EntityAttributeModifier(id, level, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+                instance.addTemporaryModifier(modifier);
             }
         } else {
             if (hasModifier) {
