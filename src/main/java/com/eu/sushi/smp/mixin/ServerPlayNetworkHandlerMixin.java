@@ -4,7 +4,6 @@ import net.minecraft.entity.passive.HappyGhastEntity;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerPlayNetworkHandler.class)
