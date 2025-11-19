@@ -21,11 +21,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
+import static com.eu.sushi.smp.Smp.LOGGER;
 import static com.eu.sushi.smp.Smp.MOD_ID;
 
 @Mixin(HappyGhastEntity.class)
 public class HappyGhastEntityMixin {
-    @Inject(method = "removePassenger", at = @At("HEAD"))
+    @Inject(method = "removePassenger", at = @At("TAIL"))
     private void onRemovePassenger(CallbackInfo ci) {
         HappyGhastEntity self = (HappyGhastEntity) (Object) this;
 
