@@ -1,0 +1,17 @@
+{
+  "description": "Speedy Ghast",
+  "supported_items": "#minecraft:harnesses",
+  "primary_items": "#minecraft:harnesses",
+  "weight": 5,
+  "max_level": 3,
+  "min_cost": {
+    "base": 5,
+    "per_level_above_first": 8
+  },
+  "max_cost": {
+    "base": 55,
+    "per_level_above_first": 8
+  },
+  "anvil_cost": 2,
+  "slots": ["any"]
+}

@@ -10,5 +10,6 @@ public class Smp implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        SmpEnchantments.initialize();
     }
 }
