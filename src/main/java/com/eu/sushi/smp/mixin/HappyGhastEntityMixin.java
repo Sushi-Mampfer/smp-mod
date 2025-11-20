@@ -71,7 +71,7 @@ public class HappyGhastEntityMixin {
 
         if (pilot.getPlayerInput().sprint()) {
             if (!hasModifier) {
-                EntityAttributeModifier modifier = new EntityAttributeModifier(id, level, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+                EntityAttributeModifier modifier = new EntityAttributeModifier(id, level / 2.0, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
                 instance.addTemporaryModifier(modifier);
             }
         } else {
