@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
-import static com.eu.sushi.smp.Smp.LOGGER;
 import static com.eu.sushi.smp.Smp.MOD_ID;
 
 @Mixin(HappyGhastEntity.class)

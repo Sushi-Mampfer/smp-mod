@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "HappyGhastEntityMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "FireworkRocketItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

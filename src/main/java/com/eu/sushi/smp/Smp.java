@@ -2,6 +2,7 @@ package com.eu.sushi.smp;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -37,10 +38,11 @@ public class Smp implements ModInitializer {
             Items.BLACK_HARNESS
     );
 
+
     @Override
     public void onInitialize() {
         DefaultItemComponentEvents.MODIFY.register((context) -> {
-            context.modify(HARNESSES, (builder, _item) -> {builder.add(DataComponentTypes.ENCHANTABLE, new EnchantableComponent(1));});
+            context.modify(HARNESSES, (builder, _item) -> {builder.add(DataComponentTypes.ENCHANTABLE, new EnchantableComponent(1)).add(DataComponentTypes.DAMAGE, 0).add(DataComponentTypes.MAX_DAMAGE, 1);});
         });
         SmpEnchantments.initialize();
     }
