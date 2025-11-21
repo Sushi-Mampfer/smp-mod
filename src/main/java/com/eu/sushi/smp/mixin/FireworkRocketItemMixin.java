@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class FireworkRocketItemMixin {
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void onUse(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<ActionResult> ci) {
-        if (user.getEntityWorld().getDimension().bedWorks()) {
+        if (user.getEntityWorld().getRegistryKey() == World.OVERWORLD) {
             ci.setReturnValue(ActionResult.PASS);
         }
     }

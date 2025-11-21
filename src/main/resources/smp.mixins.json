@@ -4,9 +4,10 @@
   "package": "com.eu.sushi.smp.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FireworkRocketItemMixin",
     "HappyGhastEntityMixin",
-    "ServerPlayNetworkHandlerMixin",
-    "FireworkRocketItemMixin"
+    "NetherPortalBlockMixin",
+    "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

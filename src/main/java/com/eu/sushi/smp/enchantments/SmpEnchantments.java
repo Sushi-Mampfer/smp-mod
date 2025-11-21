@@ -1,4 +1,4 @@
-package com.eu.sushi.smp;
+package com.eu.sushi.smp.enchantments;
 
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.registry.RegistryKey;
@@ -15,5 +15,6 @@ public final class SmpEnchantments {
     }
 
     public static void initialize() {
+        SpeedyGhast.initialize();
     }
 }

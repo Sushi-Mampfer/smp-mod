@@ -1,6 +1,6 @@
 package com.eu.sushi.smp.mixin;
 
-import com.eu.sushi.smp.SmpEnchantments;
+import com.eu.sushi.smp.enchantments.SmpEnchantments;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
