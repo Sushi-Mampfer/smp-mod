@@ -6,7 +6,9 @@
   "mixins": [
     "FireworkRocketItemMixin",
     "HappyGhastEntityMixin",
+    "LivingEntityMixin",
     "NetherPortalBlockMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {

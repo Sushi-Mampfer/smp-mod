@@ -21,6 +21,7 @@ public class Smp implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        SpawnElytra.initialize();
         SmpCommands.initialize();
         SmpEnchantments.initialize();
     }
