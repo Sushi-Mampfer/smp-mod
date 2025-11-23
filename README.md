@@ -14,7 +14,7 @@ Helps to build farms that require night time. For example the zombie in an iron 
 ### No rocket boost in the overworld
 Slows the game down a little
 
-###Speedy ghast
+### Speedy ghast
 Brings players closer together
 
 # Demo
