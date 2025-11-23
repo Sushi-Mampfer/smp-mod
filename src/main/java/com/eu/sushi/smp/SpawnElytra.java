@@ -1,6 +1,7 @@
 package com.eu.sushi.smp;
 
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -14,9 +15,9 @@ public class SpawnElytra {
     private static BlockPos spawnPos;
     private static int spawnRadius;
 
-    public static void initialize() {
-        spawnPos = new BlockPos(0, 100, 0);
-        spawnRadius = 10;
+    public static void initialize(MinecraftServer server) {
+        spawnPos = server.getOverworld().getSpawnPoint().getPos();
+        spawnRadius = 15;
     }
 
     public static boolean forceGlide(LivingEntity player) {

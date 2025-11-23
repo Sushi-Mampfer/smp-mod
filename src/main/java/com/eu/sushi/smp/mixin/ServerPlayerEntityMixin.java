@@ -9,6 +9,7 @@ import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.GameMode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,6 +24,9 @@ public class ServerPlayerEntityMixin {
     private void tick(CallbackInfo ci) {
         ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
         PlayerAbilities abilities = self.getAbilities();
+        if (self.getGameMode() != GameMode.SURVIVAL && self.getGameMode() != GameMode.ADVENTURE) {
+            return;
+        }
 
         if (SpawnElytra.inSpawn(self)) {
             if (self.isOnGround()) {
