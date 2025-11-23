@@ -1,7 +1,6 @@
 package com.eu.sushi.smp;
 
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -9,7 +8,6 @@ import net.minecraft.world.World;
 
 import java.util.*;
 
-import static com.eu.sushi.smp.Smp.LOGGER;
 
 public class SpawnElytra {
     private static final List<UUID> flyingPlayers = new ArrayList<>();
