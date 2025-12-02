@@ -14,7 +14,10 @@ public class Smp implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> SpawnElytra.initialize(server));
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            SpawnElytra.initialize(server);
+            Whitelist.initialize(server);
+        });
 
         SmpCommands.initialize();
         SmpEnchantments.initialize();
