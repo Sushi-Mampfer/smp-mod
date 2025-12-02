@@ -9,7 +9,8 @@
     "LivingEntityMixin",
     "NetherPortalBlockMixin",
     "ServerPlayerEntityMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "TridentItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1
