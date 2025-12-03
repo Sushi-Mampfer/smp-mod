@@ -1,65 +1,65 @@
 package com.eu.sushi.smp;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import discord4j.common.util.Snowflake;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Uuids;
 import net.minecraft.world.PersistentState;
+import net.minecraft.world.PersistentStateType;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.eu.sushi.smp.Smp.MOD_ID;
 
 public class StateSaverAndLoader extends PersistentState {
-    public HashMap<Snowflake, List<UUID>> snowflake_to_uuid = new HashMap<>();
-    public HashMap<UUID, Snowflake> uuid_to_snowflake = new HashMap<>();
+    public HashMap<Snowflake, List<UUID>> snowflake_to_uuids;
+    public HashMap<UUID, Snowflake> uuid_to_snowflake;
 
-    @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
-        nbt.put("totalDirtBlocksBroken", totalDirtBlocksBroken);
+    public static final Codec<StateSaverAndLoader> CODEC = RecordCodecBuilder.create(instance ->
+        instance.group(
+            Codec.unboundedMap(Uuids.CODEC, Codec.STRING)
+                .fieldOf("whitelists")
+                .forGetter(state ->
+                        state.uuid_to_snowflake.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().asString()))
+                )
+        ).apply(instance, StateSaverAndLoader::new)
+    );
 
-        NbtCompound playersNbt = new NbtCompound();
-        players.forEach((uuid, playerData) -> {
-            NbtCompound playerNbt = new NbtCompound();
+    private StateSaverAndLoader(Map<UUID, String> uuidToSnowflakeStrings) {
+        this.uuid_to_snowflake = new HashMap<>();
+        this.snowflake_to_uuids = new HashMap<>();
 
-            playerNbt.putInt("dirtBlocksBroken", playerData.dirtBlocksBroken);
+        uuidToSnowflakeStrings.forEach((uuid, snowflake) -> {
+            Snowflake snowflake1 = Snowflake.of(snowflake);
+            this.uuid_to_snowflake.put(uuid, snowflake1);
 
-            playerNbt.putIntArray("oldCravings", playerData.oldCravings);
-
-            NbtCompound fatigueTag = new NbtCompound();
-            playerData.fatigue.forEach((foodID, fatigueAmount) -> fatigueTag.putInt(String.valueOf(foodID), fatigueAmount));
-            playerNbt.put("fatigue", fatigueTag);
-
-            playersNbt.put(uuid.toString(), playerNbt);
+            if (this.snowflake_to_uuids.containsKey(snowflake1)) {
+                this.snowflake_to_uuids.get(snowflake1).add(uuid);
+            } else {
+                this.snowflake_to_uuids.put(snowflake1, new ArrayList<>());
+                this.snowflake_to_uuids.get(snowflake1).add(uuid);
+            }
         });
-        nbt.put("players", playersNbt);
-
-        return nbt;
     }
 
-    public static StateSaverAndLoader createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        StateSaverAndLoader state = new StateSaverAndLoader();
-        state.totalDirtBlocksBroken = tag.getInt("totalDirtBlocksBroken");
+    public StateSaverAndLoader() {
+        this.uuid_to_snowflake = new HashMap<>();
+        this.snowflake_to_uuids = new HashMap<>();
+    }
 
-        NbtCompound playersNbt = tag.getCompound("players");
-        playersNbt.getKeys().forEach(key -> {
-            PlayerData playerData = new PlayerData();
+    private static PersistentStateType<StateSaverAndLoader> TYPE = new PersistentStateType<>(
+            Identifier.of(MOD_ID, "whitelist").toString(),
+            StateSaverAndLoader::new,
+            CODEC,
+            null
+    );
 
-            playerData.dirtBlocksBroken = playersNbt.getCompound(key).getInt("dirtBlocksBroken");
-
-            NbtCompound fatigueCompound = playersNbt.getCompound(key).getCompound("fatigue");
-            fatigueCompound.getKeys().forEach(s -> {
-                Integer foodID = Integer.valueOf(s);
-                int fatigueAmount = fatigueCompound.getInt(s);
-                playerData.fatigue.put(foodID, fatigueAmount);
-            });
-
-            for (int oldCravings : playersNbt.getCompound(key).getIntArray("oldCravings")) {
-                playerData.oldCravings.add(oldCravings);
-            }
-
-            UUID uuid = UUID.fromString(key);
-            state.players.put(uuid, playerData);
-        });
-
-        return state;
+    public static StateSaverAndLoader getServerState(MinecraftServer server) {
+        return server.getOverworld().getPersistentStateManager().getOrCreate(TYPE);
     }
 }
