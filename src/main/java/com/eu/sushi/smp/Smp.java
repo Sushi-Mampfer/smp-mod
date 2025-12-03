@@ -4,7 +4,6 @@ import com.eu.sushi.smp.commands.SmpCommands;
 import com.eu.sushi.smp.enchantments.SmpEnchantments;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
