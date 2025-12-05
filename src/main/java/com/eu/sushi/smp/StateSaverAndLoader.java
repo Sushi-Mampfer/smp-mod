@@ -21,7 +21,7 @@ public class StateSaverAndLoader extends PersistentState {
     public HashMap<UUID, Snowflake> uuid_to_snowflake;
     public HashMap<Snowflake, Pair<String, Snowflake>> whitelist_requests;
 
-    private static final Codec<Snowflake> SNOWFLAKE_CODEC = Codec.STRING.xmap(Snowflake::of, Snowflake::asString);
+    private static final Codec<Snowflake> SNOWFLAKE_CODEC = Codec.LONG.xmap(Snowflake::of, Snowflake::asLong);
 
     public static final Codec<StateSaverAndLoader> CODEC = RecordCodecBuilder.create(instance ->
         instance.group(
@@ -73,10 +73,8 @@ public class StateSaverAndLoader extends PersistentState {
 
     public int whitelistCount(Snowflake snowflake) {
         List<UUID> list = this.snowflake_to_uuids.get(snowflake);
-        if (list == null) {
-            return 0;
-        }
-        return list.toArray().length;
+        if (list == null) return 0;
+        return list.size();
     }
 
     public void addWhitelist(Snowflake snowflake, UUID uuid) {
@@ -88,7 +86,7 @@ public class StateSaverAndLoader extends PersistentState {
 
     public void removeWhitelist(UUID uuid) {
         Snowflake snowflake = this.uuid_to_snowflake.remove(uuid);
-        this.snowflake_to_uuids.get(snowflake).remove(uuid);
+        if (snowflake != null) this.snowflake_to_uuids.get(snowflake).remove(uuid);
         this.markDirty();
     }
 

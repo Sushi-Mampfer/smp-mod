@@ -17,7 +17,7 @@ public class SpawnElytra {
 
     public static void initialize(MinecraftServer server) {
         spawnPos = server.getOverworld().getSpawnPoint().getPos();
-        spawnRadius = 15;
+        spawnRadius = 24;
     }
 
     public static boolean forceGlide(LivingEntity player) {

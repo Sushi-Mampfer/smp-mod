@@ -44,7 +44,63 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "com.discord4j:discord4j-core:3.3.0"
+
+    // Discord4J Core modules
+    include(implementation("com.discord4j:discord4j-core:3.3.0"))
+    include(implementation("com.discord4j:discord4j-rest:3.3.0"))
+    include(implementation("com.discord4j:discord4j-gateway:3.3.0"))
+    include(implementation("com.discord4j:discord4j-common:3.3.0"))
+    include(implementation("com.discord4j:discord4j-voice:3.3.0"))
+    include(implementation("com.discord4j:stores-jdk:3.2.3"))
+    include(implementation("com.discord4j:stores-api:3.2.3"))
+    include(implementation("com.discord4j:simple-fsm:1.0.1"))
+
+    // Discord JSON
+    include(implementation("com.discord4j:discord-json:1.7.19"))
+    include(implementation("com.discord4j:discord-json-api:1.7.19"))
+
+    // Reactor
+    include(implementation("io.projectreactor:reactor-core:3.6.18"))
+    include(implementation("io.projectreactor.netty:reactor-netty-core:1.1.31"))
+    include(implementation("io.projectreactor.netty:reactor-netty-http:1.1.31"))
+    include(implementation("io.projectreactor.addons:reactor-extra:3.5.2"))
+    include(implementation("org.reactivestreams:reactive-streams:1.0.4"))
+
+    // Jackson
+    include(implementation("com.fasterxml.jackson.core:jackson-databind:2.18.4"))
+    include(implementation("com.fasterxml.jackson.core:jackson-core:2.18.4"))
+    include(implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.4"))
+    include(implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.4"))
+    include(implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.18.4"))
+
+    // Netty
+    include(implementation("io.netty:netty-handler:4.1.122.Final"))
+    include(implementation("io.netty:netty-codec-http:4.1.122.Final"))
+    include(implementation("io.netty:netty-codec-http2:4.1.122.Final"))
+    include(implementation("io.netty:netty-resolver-dns:4.1.122.Final"))
+    include(implementation("io.netty:netty-codec-dns:4.1.122.Final"))
+    include(implementation("io.netty:netty-transport-native-epoll:4.1.122.Final"))
+    include(implementation("io.netty:netty-transport-classes-epoll:4.1.122.Final"))
+    include(implementation("io.netty:netty-resolver-dns-native-macos:4.1.122.Final"))
+    include(implementation("io.netty:netty-resolver-dns-classes-macos:4.1.122.Final"))
+    include(implementation("io.netty:netty-handler-proxy:4.1.122.Final"))
+    include(implementation("io.netty:netty-codec-socks:4.1.122.Final"))
+    include(implementation("io.netty:netty-transport-native-unix-common:4.1.122.Final"))
+    include(implementation("io.netty:netty-transport:4.1.122.Final"))
+    include(implementation("io.netty:netty-codec:4.1.122.Final"))
+    include(implementation("io.netty:netty-buffer:4.1.122.Final"))
+    include(implementation("io.netty:netty-common:4.1.122.Final"))
+    include(implementation("io.netty:netty-resolver:4.1.122.Final"))
+
+    // Other dependencies
+    include(implementation("com.github.ben-manes.caffeine:caffeine:2.9.3"))
+    include(implementation("com.austinv11.servicer:Servicer:1.0.3"))
+    include(implementation("com.google.crypto.tink:tink:1.15.0"))
+    include(implementation("com.google.code.gson:gson:2.11.0"))
+    include(implementation("com.google.protobuf:protobuf-java:3.25.3"))
+    include(implementation("com.google.errorprone:error_prone_annotations:2.27.0"))
+    include(implementation("org.checkerframework:checker-qual:3.19.0"))
+    include(implementation("com.google.code.findbugs:jsr305:3.0.2"))
 }
 
 processResources {
