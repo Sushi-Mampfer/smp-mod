@@ -10,15 +10,18 @@ import org.apache.logging.log4j.Logger;
 public class Smp implements ModInitializer {
     public static final String MOD_ID = "smp";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    public static ModConfig config;
 
     @Override
     public void onInitialize() {
+        config = ConfigManager.loadConfig();
+
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-            SpawnElytra.initialize(server);
-            Whitelist.initialize(server);
+            if (config.spawnElytra.enabled) SpawnElytra.initialize(server);
+            if (config.whitelist.enabled) Whitelist.initialize(server);
         });
 
         SmpCommands.initialize();
-        SmpEnchantments.initialize();
+        if (config.speedyGhast) SmpEnchantments.initialize();
     }
 }

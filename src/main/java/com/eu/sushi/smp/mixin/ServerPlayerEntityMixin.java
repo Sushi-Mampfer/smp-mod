@@ -1,5 +1,6 @@
 package com.eu.sushi.smp.mixin;
 
+import com.eu.sushi.smp.Smp;
 import com.eu.sushi.smp.SpawnElytra;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.FireworksComponent;
@@ -22,6 +23,7 @@ public class ServerPlayerEntityMixin {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void tick(CallbackInfo ci) {
+        if (!Smp.config.spawnElytra.enabled) return;
         ServerPlayerEntity self = (ServerPlayerEntity) (Object) this;
         PlayerAbilities abilities = self.getAbilities();
         if (self.getGameMode() != GameMode.SURVIVAL && self.getGameMode() != GameMode.ADVENTURE) {

@@ -1,5 +1,6 @@
 package com.eu.sushi.smp.mixin;
 
+import com.eu.sushi.smp.Smp;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.entity.Entity;
@@ -17,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class NetherPortalBlockMixin {
     @Inject(method = "onEntityCollision", at = @At("HEAD"), cancellable = true)
     protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler, boolean bl, CallbackInfo ci) {
+        if (!Smp.config.noNether) return;
         if (world.getRegistryKey() != World.OVERWORLD) {
             return;
         }

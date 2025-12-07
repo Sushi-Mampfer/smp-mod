@@ -10,6 +10,7 @@
     "NetherPortalBlockMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
+    "EndPortalBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

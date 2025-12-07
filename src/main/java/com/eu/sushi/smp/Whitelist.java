@@ -23,12 +23,18 @@ import java.time.Instant;
 import java.util.Optional;
 
 public class Whitelist {
-    static private final Snowflake CHANNEL = Snowflake.of("1445523076488888370");
-    static private final Snowflake WHITELIST_PREMIUM = Snowflake.of("1446085376417464413");
-    static private final Snowflake WEBHOOK = Snowflake.of("1446067399618203664");
+    static private String TOKEN;
+    static private Snowflake CHANNEL;
+    static private Snowflake ROLE;
+    static private Snowflake WEBHOOK;
 
     public static void initialize(MinecraftServer server) {
-        Mono<Void> login = DiscordClient.create(System.getenv("TOKEN")).withGateway((GatewayDiscordClient gateway) -> {
+        TOKEN = Smp.config.whitelist.token;
+        CHANNEL = Snowflake.of(Smp.config.whitelist.channel);
+        ROLE = Snowflake.of(Smp.config.whitelist.whitelist_role);
+        WEBHOOK = Snowflake.of(Smp.config.whitelist.webhook_id);
+
+        Mono<Void> login = DiscordClient.create(TOKEN).withGateway((GatewayDiscordClient gateway) -> {
             Mono<Void> messageEvent = gateway.on(MessageCreateEvent.class, event ->
                     Mono.fromRunnable(() -> {
                         Message message = event.getMessage();
@@ -78,9 +84,11 @@ public class Whitelist {
 
                                 boolean banned = banlist.contains(player);
 
-                                if ((newUser(joinTime.getEpochSecond()) || state.whitelistCount(author.getId()) > 0 || banned) && !author.getRoleIds().contains(WHITELIST_PREMIUM)) {
+                                if (banned && !Smp.config.whitelist.verification) return;
+
+                                if ((newUser(joinTime.getEpochSecond()) || state.whitelistCount(author.getId()) > 0 || banned) && !author.getRoleIds().contains(ROLE) && Smp.config.whitelist.verification) {
                                     Message msg = gateway.getWebhookById(WEBHOOK).flatMap(webhook -> webhook
-                                            .execute().withContent("**" + content + "**\n\nPlease wait for <@&" + WHITELIST_PREMIUM.asString() + (banned ? "> unban." : "> verification."))
+                                            .execute().withContent("**" + content + "**\n\nPlease wait for <@&" + ROLE.asString() + (banned ? "> unban." : "> verification."))
                                             .withUsername(author.getDisplayName())
                                             .withAvatarUrl(author.getAvatarUrl())
                                             .withWaitForMessage(true)
@@ -126,7 +134,7 @@ public class Whitelist {
                             StateSaverAndLoader state = StateSaverAndLoader.getServerState(server);
 
                             if (emoji.equals(Emoji.unicode("✅"))) {
-                                if (member.getRoleIds().contains(WHITELIST_PREMIUM)) {
+                                if (member.getRoleIds().contains(ROLE)) {
                                     Pair<String, Snowflake> pair = state.popWhitelistRequest(event.getMessageId());
                                     if (pair == null) {
                                         return;
@@ -149,6 +157,9 @@ public class Whitelist {
 
                                     if (banlist.contains(player)) banlist.remove(player);
 
+                                    WhitelistEntry entry = new WhitelistEntry(player);
+                                    whitelist.add(entry);
+
                                     state.addWhitelist(pair.getSecond(), player.id());
                                     message.removeAllReactions().block();
                                     message.addReaction(Emoji.unicode("✅")).block();
@@ -158,7 +169,7 @@ public class Whitelist {
                                     ).block();
                                 }
                             } else if (event.getEmoji().equals(Emoji.unicode("❌"))) {
-                                if (member.getRoleIds().contains(WHITELIST_PREMIUM)) {
+                                if (member.getRoleIds().contains(ROLE)) {
                                     String content = message.getContent();
                                     message.delete().block();
 
@@ -169,16 +180,16 @@ public class Whitelist {
 
                                     PlayerManager playerManager = server.getPlayerManager();
 
-                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
-                                    if (serverPlayerEntity == null) return;
-                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.not_whitelisted"));
-
                                     net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
                                     whitelist.remove(player);
                                     state.removeWhitelist(player.id());
+
+                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
+                                    if (serverPlayerEntity == null) return;
+                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.not_whitelisted"));
                                 }
                             } else if (event.getEmoji().equals(Emoji.unicode("⛔"))) {
-                                if (member.getRoleIds().contains(WHITELIST_PREMIUM)) {
+                                if (member.getRoleIds().contains(ROLE)) {
                                     String content = message.getContent();
                                     message.delete().block();
 
@@ -192,13 +203,13 @@ public class Whitelist {
                                     BannedPlayerEntry bannedPlayerEntry = new BannedPlayerEntry(player);
                                     banList.add(bannedPlayerEntry);
 
-                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
-                                    if (serverPlayerEntity == null) return;
-                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.banned"));
-
                                     net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
                                     whitelist.remove(player);
                                     state.removeWhitelist(player.id());
+
+                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
+                                    if (serverPlayerEntity == null) return;
+                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.banned"));
                                 }
                             }
                         }

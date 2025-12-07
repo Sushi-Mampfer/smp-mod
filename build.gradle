@@ -45,6 +45,9 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+    // Config
+    include implementation("org.yaml:snakeyaml:2.0")
+
     // Discord4J Core modules
     include(implementation("com.discord4j:discord4j-core:3.3.0"))
     include(implementation("com.discord4j:discord4j-rest:3.3.0"))

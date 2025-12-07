@@ -52,7 +52,7 @@ public class NoSleep {
         });
         ServerTickEvents.END_WORLD_TICK.register((world) -> {
             if (world.getRegistryKey() == World.OVERWORLD) {
-                if (world.getTimeOfDay() == 0) {
+                if (world.getTimeOfDay() == 4000) {
                     noSleep = null;
                 }
             }

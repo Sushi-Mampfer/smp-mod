@@ -1,5 +1,6 @@
 package com.eu.sushi.smp.mixin;
 
+import com.eu.sushi.smp.Smp;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.FireworkRocketItem;
 import net.minecraft.util.ActionResult;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class FireworkRocketItemMixin {
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void onUse(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<ActionResult> ci) {
+        if (!Smp.config.noRockets) return;
         if (user.getEntityWorld().getRegistryKey() == World.OVERWORLD) {
             ci.setReturnValue(ActionResult.PASS);
         }
