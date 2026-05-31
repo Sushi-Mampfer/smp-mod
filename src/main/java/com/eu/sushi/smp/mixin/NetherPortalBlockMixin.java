@@ -1,14 +1,14 @@
 package com.eu.sushi.smp.mixin;
 
 import com.eu.sushi.smp.Smp;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.NetherPortalBlock;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCollisionHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.NetherPortalBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,14 +16,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(NetherPortalBlock.class)
 public class NetherPortalBlockMixin {
-    @Inject(method = "onEntityCollision", at = @At("HEAD"), cancellable = true)
-    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler, boolean bl, CallbackInfo ci) {
+    @Inject(method = "entityInside", at = @At("HEAD"), cancellable = true)
+    protected void onEntityCollision(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise, CallbackInfo ci) {
         if (!Smp.config.noNether) return;
-        if (world.getRegistryKey() != World.OVERWORLD) {
+        if (level.dimension() != Level.OVERWORLD) {
             return;
         }
-        if (entity instanceof ServerPlayerEntity player) {
-            if (player.getGameMode() == GameMode.CREATIVE) {
+        if (entity instanceof ServerPlayer player) {
+            if (player.gameMode() == GameType.CREATIVE) {
                 return;
             }
         }

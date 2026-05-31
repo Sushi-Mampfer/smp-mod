@@ -6,7 +6,6 @@ The framework for your next smp, it's heavily inspired by craft attack 13 and ai
 noEnd: false // disables the end
 noNether: false // disables the nether
 noRockets: false // disables rockets in the overworld
-noSleep: false // enables the nosleep command(tells everyone that goes to bed that you don't want the mto sleep)
 spawnElytra:
     enabled: false // enables the spawnelytra
     radius: 0 // radius around the worldspawn where the spawnelytra can be used

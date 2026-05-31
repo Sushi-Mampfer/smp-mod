@@ -5,11 +5,11 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "FireworkRocketItemMixin",
-    "HappyGhastEntityMixin",
+    "HappyGhastMixin",
     "LivingEntityMixin",
     "NetherPortalBlockMixin",
-    "ServerPlayerEntityMixin",
-    "ServerPlayNetworkHandlerMixin",
+    "ServerPlayerMixin",
+    "ServerGamePacketListenerImplMixin",
     "EndPortalBlockMixin"
   ],
   "injectors": {

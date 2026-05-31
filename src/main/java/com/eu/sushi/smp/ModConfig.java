@@ -1,7 +1,6 @@
 package com.eu.sushi.smp;
 
 public class ModConfig {
-    public boolean noSleep = false;
     public boolean noNether = false;
     public boolean noEnd = false;
     public boolean noRockets = false;

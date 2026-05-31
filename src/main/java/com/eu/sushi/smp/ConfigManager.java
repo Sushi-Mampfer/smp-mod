@@ -16,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class ConfigManager {
-    private static Yaml yaml;
+    private static final Yaml yaml;
 
     static {
         DumperOptions dumperOptions = new DumperOptions();
@@ -54,7 +54,6 @@ public final class ConfigManager {
             }
         } catch (IOException e) {
             System.err.println("Failed to save config: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -68,7 +67,6 @@ public final class ConfigManager {
                 return yaml.loadAs(reader, ModConfig.class);
             } catch (IOException e) {
                 System.err.println("Failed to load config: " + e.getMessage());
-                e.printStackTrace();
             }
         }
 

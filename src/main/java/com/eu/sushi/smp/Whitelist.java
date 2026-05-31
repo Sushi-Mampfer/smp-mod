@@ -1,7 +1,5 @@
 package com.eu.sushi.smp;
 
-
-import com.mojang.datafixers.util.Pair;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
@@ -12,24 +10,25 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.WebhookMessageEditSpec;
 import discord4j.discordjson.json.MessageReferenceData;
 import discord4j.discordjson.possible.Possible;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.*;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.*;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.Optional;
 
 public class Whitelist {
-    static private String TOKEN;
     static private Snowflake CHANNEL;
     static private Snowflake ROLE;
     static private Snowflake WEBHOOK;
 
     public static void initialize(MinecraftServer server) {
-        TOKEN = Smp.config.whitelist.token;
+        String TOKEN = Smp.config.whitelist.token;
         CHANNEL = Snowflake.of(Smp.config.whitelist.channel);
         ROLE = Snowflake.of(Smp.config.whitelist.whitelist_role);
         WEBHOOK = Snowflake.of(Smp.config.whitelist.webhook_id);
@@ -59,36 +58,39 @@ public class Whitelist {
                                         .build()).block();
                                 return;
                             }
-                            if (message.getContent().equalsIgnoreCase("ghostinator")) {
+
+                            String content = message.getContent().strip();
+
+                            if (content.equalsIgnoreCase("ghostinator")) {
                                 channel.createMessage(MessageCreateSpec.builder()
                                         .content("Dä nid")
                                         .messageReference(MessageReferenceData.builder().messageId(message.getId().asLong()).build())
                                         .build()).block();
                                 return;
                             }
-                            String content = message.getContent();
                             message.delete().block();
-                            if (content.equals(content.strip())) {
-                                PlayerManager playerManager = server.getPlayerManager();
+                            if (!content.contains(" ")) {
+                                PlayerList playerManager = server.getPlayerList();
 
-                                net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
-                                BannedPlayerList banlist = playerManager.getUserBanList();
+                                net.minecraft.server.players.UserWhiteList whitelist = playerManager.getWhiteList();
+                                UserBanList banlist = playerManager.getBans();
 
-                                PlayerConfigEntry player = server.getApiServices().nameToIdCache().findByName(content).orElse(null);
+                                NameAndId player = server.services().nameToIdCache().get(content).orElse(null);
                                 if (player == null) return;
-                                if (whitelist.isAllowed(player)) return;
-                                StateSaverAndLoader state = StateSaverAndLoader.getServerState(server);
+                                if (whitelist.isWhiteListed(player)) return;
+
+                                WhitelistSate state = WhitelistSate.getWhitelistState(server);
 
                                 Instant joinTime = author.getJoinTime().orElse(null);
                                 if (joinTime == null) return;
 
-                                boolean banned = banlist.contains(player);
+                                boolean banned = banlist.isBanned(player) || state.isBanned(author.getId());
 
                                 if (banned && !Smp.config.whitelist.verification) return;
 
                                 if ((newUser(joinTime.getEpochSecond()) || state.whitelistCount(author.getId()) > 0 || banned) && !author.getRoleIds().contains(ROLE) && Smp.config.whitelist.verification) {
                                     Message msg = gateway.getWebhookById(WEBHOOK).flatMap(webhook -> webhook
-                                            .execute().withContent("**" + content + "**\n\nPlease wait for <@&" + ROLE.asString() + (banned ? "> unban." : "> verification."))
+                                            .execute().withContent("**" + content + "**\n\n" + (banned ? ("You are banned!\nPlease wait for <@&" + ROLE.asString() + "> to review your unban request.") : ("Please wait for <@&" + ROLE.asString() + "> verification.")))
                                             .withUsername(author.getDisplayName())
                                             .withAvatarUrl(author.getAvatarUrl())
                                             .withWaitForMessage(true)
@@ -98,7 +100,7 @@ public class Whitelist {
                                     }
                                     msg.addReaction(Emoji.unicode("✅")).block();
                                     msg.addReaction(Emoji.unicode("❌")).block();
-                                    state.addWhitelistRequest(msg.getId(), content, author.getId());
+                                    state.pushWhitelistRequest(msg.getId(), author.getId(), player.id());
                                     return;
                                 }
 
@@ -111,11 +113,13 @@ public class Whitelist {
 
                                 if (msg == null) return;
 
-                                if (banlist.contains(player)) banlist.remove(player);
+                                if (banlist.isBanned(player)) banlist.remove(player);
 
-                                WhitelistEntry entry = new WhitelistEntry(player);
-                                state.addWhitelist(author.getId(), player.id());
+                                UserWhiteListEntry entry = new UserWhiteListEntry(player);
                                 whitelist.add(entry);
+
+                                state.pushWhitelist(author.getId(), msg.getId(), player.id());
+
                                 msg.addReaction(Emoji.unicode("✅")).block();
                             }
                         }
@@ -123,95 +127,104 @@ public class Whitelist {
             ).then();
             Mono<Void> reactEvent = gateway.on(ReactionAddEvent.class, event ->
                     Mono.fromRunnable(() -> {
-                        if (event.getChannelId().equals(CHANNEL)) {
-                            Message message = event.getMessage().block();
-                            if (message == null) return;
+                        Member member = event.getMember().orElse(null);
+                        if (member == null) return;
 
-                            Member member = event.getMember().orElse(null);
-                            if (member == null) return;
+                        if (!event.getChannelId().equals(CHANNEL) || member.isBot()) {
+                            return;
+                        }
+                        Message message = event.getMessage().block();
+                        if (message == null) return;
 
-                            Emoji emoji = event.getEmoji();
-                            StateSaverAndLoader state = StateSaverAndLoader.getServerState(server);
+                        Emoji emoji = event.getEmoji();
+                        WhitelistSate state = WhitelistSate.getWhitelistState(server);
 
+                        if (member.getRoleIds().contains(ROLE)) {
                             if (emoji.equals(Emoji.unicode("✅"))) {
-                                if (member.getRoleIds().contains(ROLE)) {
-                                    Pair<String, Snowflake> pair = state.popWhitelistRequest(event.getMessageId());
-                                    if (pair == null) {
-                                        return;
-                                    }
-
-                                    PlayerManager playerManager = server.getPlayerManager();
-                                    net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
-                                    BannedPlayerList banlist = playerManager.getUserBanList();
-
-                                    PlayerConfigEntry player = server.getApiServices().nameToIdCache().findByName(pair.getFirst()).orElse(null);
-                                    if (player == null) {
-                                        message.delete().block();
-                                        return;
-                                    }
-
-                                    if (whitelist.isAllowed(player)) {
-                                        message.delete().block();
-                                        return;
-                                    }
-
-                                    if (banlist.contains(player)) banlist.remove(player);
-
-                                    WhitelistEntry entry = new WhitelistEntry(player);
-                                    whitelist.add(entry);
-
-                                    state.addWhitelist(pair.getSecond(), player.id());
-                                    message.removeAllReactions().block();
-                                    message.addReaction(Emoji.unicode("✅")).block();
-                                    gateway.getWebhookById(WEBHOOK).flatMap(webhook -> webhook
-                                            .editMessage(event.getMessageId())
-                                            .withContent(Possible.of(Optional.of(pair.getFirst())))
-                                    ).block();
+                                WhitelistSate.UserUuidPair pair = state.popWhitelistRequest(message.getId());
+                                if (pair == null) {
+                                    message.removeReaction(emoji, member.getId()).block();
+                                    return;
                                 }
-                            } else if (event.getEmoji().equals(Emoji.unicode("❌"))) {
-                                if (member.getRoleIds().contains(ROLE)) {
-                                    String content = message.getContent();
+
+                                PlayerList playerManager = server.getPlayerList();
+                                UserWhiteList whitelist = playerManager.getWhiteList();
+                                UserBanList banlist = playerManager.getBans();
+
+                                NameAndId player = server.services().nameToIdCache().get(pair.uuid()).orElse(null);
+                                if (player == null) {
                                     message.delete().block();
-
-                                    if (state.popWhitelistRequest(event.getMessageId()) != null) return;
-
-                                    PlayerConfigEntry player = server.getApiServices().nameToIdCache().findByName(content).orElse(null);
-                                    if (player == null) return;
-
-                                    PlayerManager playerManager = server.getPlayerManager();
-
-                                    net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
-                                    whitelist.remove(player);
-                                    state.removeWhitelist(player.id());
-
-                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
-                                    if (serverPlayerEntity == null) return;
-                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.not_whitelisted"));
+                                    return;
                                 }
-                            } else if (event.getEmoji().equals(Emoji.unicode("⛔"))) {
-                                if (member.getRoleIds().contains(ROLE)) {
-                                    String content = message.getContent();
+
+                                if (whitelist.isWhiteListed(player)) {
                                     message.delete().block();
-
-                                    PlayerConfigEntry player = server.getApiServices().nameToIdCache().findByName(content).orElse(null);
-
-                                    if (player == null) return;
-
-                                    PlayerManager playerManager = server.getPlayerManager();
-
-                                    BannedPlayerList banList = playerManager.getUserBanList();
-                                    BannedPlayerEntry bannedPlayerEntry = new BannedPlayerEntry(player);
-                                    banList.add(bannedPlayerEntry);
-
-                                    net.minecraft.server.Whitelist whitelist = playerManager.getWhitelist();
-                                    whitelist.remove(player);
-                                    state.removeWhitelist(player.id());
-
-                                    ServerPlayerEntity serverPlayerEntity = playerManager.getPlayer(player.id());
-                                    if (serverPlayerEntity == null) return;
-                                    serverPlayerEntity.networkHandler.disconnect(Text.translatable("multiplayer.disconnect.banned"));
+                                    return;
                                 }
+
+                                if (banlist.isBanned(player)) banlist.remove(player);
+
+                                UserWhiteListEntry entry = new UserWhiteListEntry(player);
+                                whitelist.add(entry);
+
+                                state.unban(pair.user());
+                                state.pushWhitelist(pair.user(), message.getId(), player.id());
+
+                                gateway.getWebhookById(WEBHOOK).flatMap(webhook -> webhook
+                                        .editMessage(event.getMessageId(), WebhookMessageEditSpec.builder().content(Possible.of(Optional.of(player.name()))).build())
+                                ).block();
+                                message.removeAllReactions().block();
+                                message.addReaction(Emoji.unicode("✅")).block();
+
+                            } else if (emoji.equals(Emoji.unicode("❌"))) {
+                                message.delete().block();
+
+                                if (state.popWhitelistRequest(event.getMessageId()) != null) return;
+
+                                WhitelistSate.UserUuidPair pair = state.popWhitelist(message.getId());
+
+                                NameAndId player = server.services().nameToIdCache().get(pair.uuid()).orElse(null);
+                                if (player == null) return;
+
+                                PlayerList playerManager = server.getPlayerList();
+
+                                UserWhiteList whitelist = playerManager.getWhiteList();
+                                whitelist.remove(player);
+
+                                ServerPlayer serverPlayerEntity = playerManager.getPlayer(player.id());
+                                if (serverPlayerEntity == null) return;
+                                serverPlayerEntity.connection.disconnect(Component.translatable("multiplayer.disconnect.not_whitelisted"));
+
+                            } else if (emoji.equals(Emoji.unicode("⛔"))) {
+                                message.delete().block();
+
+                                if (state.popWhitelistRequest(event.getMessageId()) != null) return;
+
+                                WhitelistSate.UserUuidPair pair = state.popWhitelist(message.getId());
+                                state.ban(pair.user());
+
+                                NameAndId player = server.services().nameToIdCache().get(pair.uuid()).orElse(null);
+
+                                if (player == null) return;
+
+                                PlayerList playerManager = server.getPlayerList();
+
+                                UserBanList banList = playerManager.getBans();
+                                UserBanListEntry bannedPlayerEntry = new UserBanListEntry(player);
+                                banList.add(bannedPlayerEntry);
+
+                                UserWhiteList whitelist = playerManager.getWhiteList();
+                                whitelist.remove(player);
+
+                                ServerPlayer serverPlayerEntity = playerManager.getPlayer(player.id());
+                                if (serverPlayerEntity == null) return;
+                                serverPlayerEntity.connection.disconnect(Component.translatable("multiplayer.disconnect.banned"));
+
+                            } else {
+                                message.removeReaction(emoji, member.getId()).block();
                             }
+                        } else {
+                            message.removeReaction(emoji, member.getId()).block();
                         }
                     })).then();
             return messageEvent.and(reactEvent);

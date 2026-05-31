@@ -3,11 +3,14 @@
   "id": "smp",
   "version": "${version}",
   "name": "smp",
-  "description": "",
-  "authors": [],
-  "contact": {},
+  "description": "A",
+  "authors": [
+    "Sushi-Mampfer"
+  ],
+  "contact": {
+    "sources": "https://github.com/Sushi-Mampfer/smp-mod"
+  },
   "license": "All-Rights-Reserved",
-  "icon": "assets/smp/icon.png",
   "environment": "server",
   "entrypoints": {
     "fabric-datagen": [
@@ -25,8 +28,9 @@
     }
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
-    "fabric": "*",
-    "minecraft": "${minecraft_version}"
+    "fabricloader": ">=0.19.2",
+    "minecraft": "~26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
   }
 }

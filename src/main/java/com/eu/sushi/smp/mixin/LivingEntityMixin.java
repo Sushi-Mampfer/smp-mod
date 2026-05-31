@@ -2,8 +2,8 @@ package com.eu.sushi.smp.mixin;
 
 import com.eu.sushi.smp.Smp;
 import com.eu.sushi.smp.SpawnElytra;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +17,7 @@ public class LivingEntityMixin {
         if (!Smp.config.spawnElytra.enabled) return;
         LivingEntity self = (LivingEntity) (Object) this;
 
-        if (!self.isOnGround() && !self.hasVehicle() && !self.hasStatusEffect(StatusEffects.LEVITATION)) {
+        if (!self.onGround() && !self.isPassenger() && !self.hasEffect(MobEffects.LEVITATION)) {
             if (SpawnElytra.forceGlide(self)) {
                 ci.setReturnValue(true);
             }
@@ -26,13 +26,13 @@ public class LivingEntityMixin {
         }
     }
 
-    @Inject(method = "tickGliding", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "updateFallFlying", at = @At("HEAD"), cancellable = true)
     public void onTickGliding(CallbackInfo ci) {
         if (!Smp.config.spawnElytra.enabled) return;
         LivingEntity self = (LivingEntity) (Object) this;
 
         if (SpawnElytra.forceGlide(self)) {
-            self.limitFallDistance();
+            self.checkFallDistanceAccumulation();
             ci.cancel();
         }
     }

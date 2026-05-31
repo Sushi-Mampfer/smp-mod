@@ -1,12 +1,11 @@
 package com.eu.sushi.smp;
 
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import java.util.*;
 
 
@@ -16,38 +15,38 @@ public class SpawnElytra {
     private static int spawnRadius;
 
     public static void initialize(MinecraftServer server) {
-        spawnPos = server.getOverworld().getSpawnPoint().getPos();
+        spawnPos = server.overworld().getRespawnData().pos();
         spawnRadius = Smp.config.spawnElytra.radius;
     }
 
     public static boolean forceGlide(LivingEntity player) {
-        if (player instanceof ServerPlayerEntity) {
-            return flyingPlayers.contains(player.getUuid());
+        if (player instanceof ServerPlayer) {
+            return flyingPlayers.contains(player.getUUID());
         }
         return false;
     }
 
-    public static boolean inSpawn(ServerPlayerEntity player) {
-        if (player.getEntityWorld().getRegistryKey() != World.OVERWORLD) {
+    public static boolean inSpawn(ServerPlayer player) {
+        if (player.level().dimension() != Level.OVERWORLD) {
             return false;
         }
         double x = player.getX() - spawnPos.getX();
         double y = player.getY() - spawnPos.getY();
         double z = player.getZ() - spawnPos.getZ();
 
-        double j = MathHelper.absMax(x, y);
-        double k = MathHelper.absMax(j, z);
+        double j = Mth.absMax(x, y);
+        double k = Mth.absMax(j, z);
 
         return k <= spawnRadius;
     }
 
-    public static void addPlayer(ServerPlayerEntity player) {
-        flyingPlayers.add(player.getUuid());
+    public static void addPlayer(ServerPlayer player) {
+        flyingPlayers.add(player.getUUID());
     }
 
     public static void removePlayer(LivingEntity player) {
-        if (player instanceof ServerPlayerEntity) {
-            flyingPlayers.remove(player.getUuid());
+        if (player instanceof ServerPlayer) {
+            flyingPlayers.remove(player.getUUID());
         }
     }
 }
