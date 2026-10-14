@@ -13,6 +13,7 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.WebhookMessageEditSpec;
 import discord4j.discordjson.json.MessageReferenceData;
 import discord4j.discordjson.possible.Possible;
+import discord4j.gateway.intent.IntentSet;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.*;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,7 +34,7 @@ public class Whitelist {
         ROLE = Snowflake.of(Smp.config.whitelist.whitelist_role);
         WEBHOOK = Snowflake.of(Smp.config.whitelist.webhook_id);
 
-        Mono<Void> login = DiscordClient.create(TOKEN).withGateway((GatewayDiscordClient gateway) -> {
+        Mono<Void> login = DiscordClient.create(TOKEN).gateway().setEnabledIntents(IntentSet.all()).withGateway((GatewayDiscordClient gateway) -> {
             Mono<Void> messageEvent = gateway.on(MessageCreateEvent.class, event ->
                     Mono.fromRunnable(() -> {
                         Message message = event.getMessage();
