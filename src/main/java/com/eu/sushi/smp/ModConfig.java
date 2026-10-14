@@ -1,6 +1,9 @@
 package com.eu.sushi.smp;
 
+import java.util.HashMap;
+
 public class ModConfig {
+    public HashMap<String, Integer> despawnBlocks = new HashMap<>();
     public boolean noNether = false;
     public boolean noEnd = false;
     public boolean noRockets = false;
